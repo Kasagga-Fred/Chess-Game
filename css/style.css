@@ -1,0 +1,324 @@
+/* ============================================================
+   style.css
+   ============================================================
+   This file controls ONLY appearance. It never touches game
+   logic. It is loaded by index.html in the <head>.
+
+   It is referenced by:
+     - index.html              (loads this file directly)
+     - js/board.js              (adds/removes classes like
+                                  "light", "dark", "selected",
+                                  "legal-move" onto squares —
+                                  this file defines what those
+                                  classes actually look like)
+
+   So the connection is:
+     board.js decides WHICH classes a square has (the "what")
+     style.css decides what those classes LOOK like (the "how")
+   ============================================================ */
+
+:root {
+  /* Centralizing colors here means board.js / game.js never
+     need to know hex codes — they just toggle class names. */
+  --board-light: #f0d9b5;
+  --board-dark: #b58863;
+  --board-border: #2b2118;
+  --highlight-selected: #f6f669;
+  --highlight-legal: rgba(20, 120, 60, 0.45);
+  --highlight-lastmove: rgba(255, 196, 0, 0.35);
+  --highlight-check: rgba(220, 30, 30, 0.55);
+
+  --bg: #1e1b18;
+  --panel-bg: #2a2520;
+  --panel-border: #3d3630;
+  --text-main: #f1ece4;
+  --text-muted: #a89c8d;
+  --accent: #c79a4b;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text-main);
+  font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+  display: flex;
+  justify-content: center;
+  padding: 24px 12px;
+}
+
+.app {
+  width: 100%;
+  max-width: 1000px;
+}
+
+.title {
+  text-align: center;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  color: var(--accent);
+  margin-bottom: 16px;
+}
+
+/* Three-column layout: captured/clocks | board | move history.
+   Wraps to a single column on small screens (see media query). */
+.layout {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.panel {
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  padding: 14px;
+  width: 180px;
+  flex-shrink: 0;
+}
+
+.clock-box {
+  text-align: center;
+  margin-bottom: 12px;
+}
+
+.clock-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  letter-spacing: 0.08em;
+}
+
+.clock-time {
+  font-size: 1.8rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+/* Dimmed clock style applied by clock.js to whichever
+   player is NOT currently on the move */
+.clock-time.inactive {
+  color: var(--text-muted);
+}
+
+.captured-box {
+  margin: 14px 0;
+}
+
+.captured-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+
+.captured-pieces {
+  font-size: 1.3rem;
+  min-height: 1.6rem;
+  line-height: 1.2;
+  word-break: break-all;
+}
+
+/* ===================== BOARD ===================== */
+
+.board-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.status {
+  margin-bottom: 10px;
+  font-size: 1.05rem;
+  font-weight: 500;
+  min-height: 1.4em;
+  text-align: center;
+}
+
+.status.check {
+  color: #ff5b5b;
+  font-weight: 700;
+}
+
+/* The board is a CSS grid of 8x8 = 64 squares.
+   board.js creates 64 <div class="square">; this grid
+   definition is what arranges them visually into 8 columns. */
+.board {
+  display: grid;
+  grid-template-columns: repeat(8, 56px);
+  grid-template-rows: repeat(8, 56px);
+  border: 4px solid var(--board-border);
+  border-radius: 4px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.square {
+  width: 56px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.1rem;
+  position: relative;
+  cursor: pointer;
+  user-select: none;
+}
+
+.square.light {
+  background: var(--board-light);
+}
+
+.square.dark {
+  background: var(--board-dark);
+}
+
+/* Applied by board.js to the currently-selected square */
+.square.selected {
+  background: var(--highlight-selected) !important;
+}
+
+/* Applied by board.js to squares the selected piece can
+   legally move to (small dot in the center) */
+.square.legal-move::after {
+  content: "";
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--highlight-legal);
+}
+
+/* When a legal-move square already has a piece on it (a
+   capture), show a ring around the piece instead of a dot */
+.square.legal-move.has-piece::after {
+  width: 50px;
+  height: 50px;
+  background: transparent;
+  border: 4px solid var(--highlight-legal);
+}
+
+/* Applied to the from/to squares of the most recent move */
+.square.last-move {
+  background-image: linear-gradient(var(--highlight-lastmove), var(--highlight-lastmove));
+}
+
+/* Applied to the king's square when it is in check */
+.square.in-check {
+  background-image: radial-gradient(circle, var(--highlight-check) 40%, transparent 70%);
+}
+
+/* Piece glyphs (Unicode chess characters) get a subtle
+   drop-shadow so white pieces are readable on light squares
+   and vice versa */
+.piece {
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.5));
+  pointer-events: none; /* clicks pass through to the square */
+}
+
+.coord {
+  position: absolute;
+  font-size: 0.6rem;
+  color: rgba(0, 0, 0, 0.4);
+  pointer-events: none;
+}
+
+.coord.file {
+  bottom: 2px;
+  right: 3px;
+}
+
+.coord.rank {
+  top: 2px;
+  left: 3px;
+}
+
+/* ===================== CONTROLS ===================== */
+
+.controls {
+  margin-top: 14px;
+  display: flex;
+  gap: 10px;
+}
+
+.controls button {
+  background: var(--accent);
+  color: #1e1b18;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: transform 0.1s ease, background 0.15s ease;
+}
+
+.controls button:hover {
+  background: #dbb05f;
+  transform: translateY(-1px);
+}
+
+.controls button:active {
+  transform: translateY(0);
+}
+
+/* ===================== MOVE LIST ===================== */
+
+.moves-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+
+.move-list {
+  margin: 0;
+  padding-left: 20px;
+  max-height: 460px;
+  overflow-y: auto;
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.move-list li {
+  display: flex;
+  gap: 8px;
+}
+
+.move-list .move-pair {
+  display: flex;
+  gap: 10px;
+}
+
+/* ===================== RESPONSIVE ===================== */
+
+@media (max-width: 820px) {
+  .layout {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .panel {
+    width: 100%;
+    max-width: 380px;
+  }
+
+  .board {
+    grid-template-columns: repeat(8, 11.5vw);
+    grid-template-rows: repeat(8, 11.5vw);
+    max-width: 92vw;
+  }
+
+  .square {
+    width: 11.5vw;
+    height: 11.5vw;
+    font-size: 7vw;
+    max-width: 56px;
+    max-height: 56px;
+  }
+}

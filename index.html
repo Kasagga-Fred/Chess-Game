@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<!--
+  ============================================================
+  index.html
+  ============================================================
+  This is the SKELETON of the page. It does not contain any
+  game logic. Its only jobs are:
+
+    1. Load the chess.js library (handles legal chess rules)
+    2. Load our CSS (visual styling)
+    3. Provide empty "container" elements that our JavaScript
+       will fill with content (the board, captured pieces,
+       move list, clock, etc.)
+    4. Load our own JS files, IN ORDER, at the bottom
+
+  HOW THE FILES CONNECT:
+  -----------------------
+  index.html
+      |
+    |--><head> 
+      
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chess Game</title>
+
+  <!-- Our stylesheet. Must come before the page renders, so it's in <head>. -->
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <div class="app">
+
+    <h1 class="title">Chess</h1>
+
+    <div class="layout">
+
+      <!-- ============================================
+           LEFT PANEL: captured pieces + clocks
+           These are EMPTY here. ui.js and clock.js will
+           insert content into them while the game runs.
+           ============================================ -->
+      <aside class="panel panel-left">
+        <div class="clock-box">
+          <div class="clock-label">Black</div>
+          <div id="black-clock" class="clock-time">10:00</div>
+        </div>
+
+        <div class="captured-box">
+          <div class="captured-label">Captured by White</div>
+          <div id="captured-by-white" class="captured-pieces"></div>
+        </div>
+
+        <div class="captured-box">
+          <div class="captured-label">Captured by Black</div>
+          <div id="captured-by-black" class="captured-pieces"></div>
+        </div>
+
+        <div class="clock-box">
+          <div class="clock-label">White</div>
+          <div id="white-clock" class="clock-time">10:00</div>
+        </div>
+      </aside>
+
+      <!-- ============================================
+           CENTER: the board itself + status line
+           The <div id="board"> starts EMPTY.
+           board.js will fill it with 64 square <div>s,
+           and game.js will place piece images inside them.
+           ============================================ -->
+      <main class="board-area">
+        <div id="status" class="status">White to move</div>
+
+        <div id="board" class="board"></div>
+
+        <div class="controls">
+          <button id="new-game-btn">New Game</button>
+          <button id="undo-btn">Undo Move</button>
+          <button id="flip-btn">Flip Board</button>
+        </div>
+      </main>
+
+      <!-- ============================================
+           RIGHT PANEL: move history list
+           ============================================ -->
+      <aside class="panel panel-right">
+        <div class="moves-label">Move History</div>
+        <ol id="move-list" class="move-list"></ol>
+      </aside>
+
+    </div>
+  </div>
+
+  <!--
+    ============================================================
+    SCRIPT LOADING ORDER (this is critical, read carefully)
+    ============================================================
+
+    1. js/lib/chess.js (LOCAL FILE — not loaded from a CDN)
+       This file implements all official chess rules: legal
+       moves, check, checkmate, stalemate, castling, en passant,
+       pawn promotion, and draw detection (Phase 7-8 of the
+       plan). It used to be loaded from a CDN, but that CDN
+       build used `export` syntax meant for ES modules, which
+       breaks when loaded as a plain <script> tag (the browser
+       throws "Unexpected token 'export'"). It's now a local
+       file that was written and tested specifically to work
+       as a plain script, and it also means the game now works
+       fully offline.
+
+       It creates a global "Chess" class we can use like:
+         const game = new Chess();
+
+    2. js/board.js
+       Defines functions to BUILD the 64 square <div> elements
+       inside #board, and to figure out square colors/coordinates.
+       Defines NO game rules — just visuals/DOM.
+
+    3. js/pieces.js
+       Defines the mapping from chess.js piece codes (like "p",
+       "N", "K") to the Unicode chess symbols we display, plus
+       a helper to draw a piece into a square.
+
+    4. js/clock.js
+       Defines a simple countdown timer for each player's clock.
+
+    5. js/ui.js
+       Defines functions that update the on-screen status text,
+       captured-pieces lists, and move-history list. These
+       functions are CALLED by game.js whenever the state
+       changes — ui.js itself does not change game state.
+
+    6. js/game.js (loads LAST)
+       This is the BRAIN. It:
+         - creates the Chess() game object
+         - listens for clicks on squares
+         - asks chess.js whether a clicked move is legal
+         - updates game state if legal
+         - calls renderBoard(), updateUI(), etc. to refresh
+           everything the player sees
+
+       game.js must load LAST because it uses functions and
+       variables defined in all the files above it.
+    ============================================================
+  -->
+
+  <script src="js/lib/chess.js"></script>
+
+  <script src="js/board.js"></script>
+  <script src="js/pieces.js"></script>
+  <script src="js/clock.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/game.js"></script>
+
+</body>
+</html>
