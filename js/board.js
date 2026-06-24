@@ -113,7 +113,7 @@ function getSquareElement(squareName) {
  */
 function clearHighlights() {
   document.querySelectorAll(".square").forEach((sq) => {
-    sq.classList.remove("selected", "legal-move", "has-piece", "last-move", "in-check");
+    sq.classList.remove("selected", "legal-move", "has-piece", "last-move", "in-check", "checkmate");
   });
 }
 

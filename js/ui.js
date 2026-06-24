@@ -106,3 +106,88 @@ function addMoveToHistory(moveNumber, moveColor, sanText) {
 function clearMoveHistory() {
   document.getElementById("move-list").innerHTML = "";
 }
+
+/**
+ * Calculate and display material count and advantage
+ * Phase 5.5: Material Count Display
+ */
+function updateMaterialCount() {
+  if (typeof chessGame === "undefined") return;
+
+  const board = chessGame.board();
+  let whiteMaterial = 0;
+  let blackMaterial = 0;
+
+  // Material values (standard chess values)
+  const pieceValues = {
+    p: 1, // pawn
+    n: 3, // knight
+    b: 3, // bishop
+    r: 5, // rook
+    q: 9, // queen
+    k: 0, // king (not counted)
+  };
+
+  // Count material on the board
+  for (let row = 0; row < 8; row++) {
+    for (let col = 0; col < 8; col++) {
+      const piece = board[row][col];
+      if (piece) {
+        const value = pieceValues[piece.type] || 0;
+        if (piece.color === "w") {
+          whiteMaterial += value;
+        } else {
+          blackMaterial += value;
+        }
+      }
+    }
+  }
+
+  // Calculate advantage
+  const advantage = whiteMaterial - blackMaterial;
+  let displayText = "";
+  let advantageClass = "";
+
+  if (advantage > 0) {
+    displayText = `White +${advantage}`;
+    advantageClass = "advantage-white";
+  } else if (advantage < 0) {
+    displayText = `Black +${Math.abs(advantage)}`;
+    advantageClass = "advantage-black";
+  } else {
+    displayText = "Equal material";
+    advantageClass = "";
+  }
+
+  // Display in status area (we'll add a dedicated element)
+  const materialEl = document.getElementById("material-count");
+  if (materialEl) {
+    materialEl.textContent = displayText;
+    materialEl.className = "material-count " + advantageClass;
+
+    // Trigger animation if material changed
+    if (materialEl.dataset.lastAdvantage !== advantage.toString()) {
+      materialEl.classList.add("changed");
+      setTimeout(() => {
+        materialEl.classList.remove("changed");
+      }, 400);
+      materialEl.dataset.lastAdvantage = advantage.toString();
+    }
+  }
+}
+
+/**
+ * Update move number display
+ * Phase 5.5: Move Number Display
+ */
+function updateMoveNumber() {
+  if (typeof chessGame === "undefined") return;
+
+  const moveNumber = Math.floor(chessGame.history().length / 2) + 1;
+  const turn = chessGame.turn() === "w" ? "White" : "Black";
+
+  const moveNumberEl = document.getElementById("move-number");
+  if (moveNumberEl) {
+    moveNumberEl.textContent = `Move ${moveNumber} - ${turn} to play`;
+  }
+}

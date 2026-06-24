@@ -192,15 +192,25 @@ body {
   height: 18px;
   border-radius: 50%;
   background: var(--highlight-legal);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }
 
 /* When a legal-move square already has a piece on it (a
    capture), show a ring around the piece instead of a dot */
 .square.legal-move.has-piece::after {
-  width: 50px;
-  height: 50px;
+  content: "";
+  position: absolute;
+  width: 48px;
+  height: 48px;
   background: transparent;
-  border: 4px solid var(--highlight-legal);
+  border: 2px solid var(--highlight-legal);
+  border-radius: 4px;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  box-sizing: border-box;
 }
 
 /* Applied to the from/to squares of the most recent move */
@@ -210,7 +220,21 @@ body {
 
 /* Applied to the king's square when it is in check */
 .square.in-check {
-  background-image: radial-gradient(circle, var(--highlight-check) 40%, transparent 70%);
+  position: relative;
+  box-sizing: border-box;
+  background-image: radial-gradient(
+    circle at center,
+    rgba(255, 69, 0, 0.3) 0%,
+    rgba(255, 69, 0, 0.2) 40%,
+    transparent 70%
+  );
+  border: 3px solid rgba(255, 69, 0, 0.9);
+  animation: checkPulse 1.2s ease-in-out infinite;
+}
+
+.square.in-check .piece {
+  position: relative;
+  z-index: 2;
 }
 
 /* Piece glyphs (Unicode chess characters) get a subtle
@@ -321,4 +345,76 @@ body {
     max-width: 56px;
     max-height: 56px;
   }
+}
+
+/* ============================================================
+   Keyboard Feedback Toast - Phase 5
+   ============================================================ */
+.keyboard-feedback {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-20px);
+  background-color: rgba(40, 40, 40, 0.95);
+  color: #fff;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  z-index: 1000;
+  opacity: 0;
+  transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+  pointer-events: none;
+}
+
+.keyboard-feedback.visible {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+.keyboard-feedback.warning {
+  background-color: rgba(200, 50, 50, 0.95);
+}
+
+/* Keyboard shortcut key styling */
+kbd {
+  display: inline-block;
+  padding: 2px 6px;
+  background-color: #f4f4f4;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  font-family: monospace;
+  font-size: 0.9em;
+  color: #333;
+}
+
+/* Material count display - Phase 5.5 */
+.material-count {
+  font-size: 14px;
+  color: #555;
+  margin-top: 8px;
+  padding: 8px;
+  background-color: #f9f9f9;
+  border-radius: 4px;
+  text-align: center;
+}
+
+.material-count.advantage-white {
+  color: #2a6b2a;
+  font-weight: bold;
+}
+
+.material-count.advantage-black {
+  color: #6b2a2a;
+  font-weight: bold;
+}
+
+/* Move number display - Phase 5.5 */
+.move-number {
+  font-size: 13px;
+  color: #666;
+  margin: 4px 0;
+  text-align: center;
+  font-weight: 500;
 }

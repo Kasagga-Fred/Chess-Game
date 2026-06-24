@@ -27,6 +27,7 @@
 
   <!-- Our stylesheet. Must come before the page renders, so it's in <head>. -->
   <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/animations.css" />
 </head>
 <body>
 
@@ -71,6 +72,8 @@
            ============================================ -->
       <main class="board-area">
         <div id="status" class="status">White to move</div>
+        <div id="move-number" class="move-number">Move 1 - White to play</div>
+        <div id="material-count" class="material-count">Equal material</div>
 
         <div id="board" class="board"></div>
 
@@ -152,6 +155,14 @@
   <script src="js/clock.js"></script>
   <script src="js/ui.js"></script>
   <script src="js/game.js"></script>
+  <script src="js/keyboard.js"></script>
+
+  <!-- Initialize keyboard shortcuts after page loads -->
+  <script>
+    window.addEventListener('DOMContentLoaded', () => {
+      initKeyboardShortcuts();
+    });
+  </script>
 
 </body>
 </html>

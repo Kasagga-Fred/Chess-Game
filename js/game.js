@@ -269,6 +269,14 @@ function refreshStatus() {
 
   const turnColor = chessGame.turn() === "w" ? "White" : "Black";
 
+  // Phase 5.5: Update material count and move number
+  if (typeof updateMaterialCount === "function") {
+    updateMaterialCount();
+  }
+  if (typeof updateMoveNumber === "function") {
+    updateMoveNumber();
+  }
+
   if (chessGame.in_checkmate()) {
     const winner = chessGame.turn() === "w" ? "Black" : "White";
     setStatusText("Checkmate! " + winner + " wins.", true);
@@ -322,17 +330,29 @@ function reapplyLastMoveHighlight() {
 
 /**
  * Finds whichever king is currently in check and applies the
- * red "in-check" highlight to its square.
+ * appropriate highlight to its square.
+ * Uses different styling for check vs checkmate.
  */
 function highlightKingInCheck() {
   const colorInCheck = chessGame.turn(); // side to move is the side in check
   const board = chessGame.board();
+  const isCheckmate = chessGame.in_checkmate();
 
   board.forEach((row, rowIndex) => {
     row.forEach((piece, colIndex) => {
       if (piece && piece.type === "k" && piece.color === colorInCheck) {
         const squareName = FILES[colIndex] + RANKS[rowIndex];
-        highlightCheck(squareName);
+        const squareEl = getSquareElement(squareName);
+
+        if (squareEl) {
+          if (isCheckmate) {
+            // Darker, more intense red for checkmate
+            squareEl.classList.add("checkmate");
+          } else {
+            // Orange-red for check (warning)
+            highlightCheck(squareName);
+          }
+        }
       }
     });
   });

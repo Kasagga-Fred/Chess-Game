@@ -1,0 +1,323 @@
+/* ============================================================
+   animations.css - Phase 5: Enhanced Game Experience
+   ============================================================
+   Smooth animations and visual feedback for chess moves.
+
+   Features:
+   - Piece sliding animations
+   - Capture flash effects
+   - Check glow effects
+   - Illegal move shake
+   - Smooth transitions
+   ============================================================ */
+
+/* === PIECE MOVEMENT ANIMATIONS === */
+
+.piece {
+  transition: transform 0.25s ease-out;
+  will-change: transform;
+}
+
+/* Smooth slide animation for moving pieces */
+.piece.sliding {
+  transition: transform 0.25s ease-out;
+  z-index: 100; /* Ensure sliding piece is on top */
+}
+
+/* Fast movement for quick games */
+.piece.sliding.fast {
+  transition: transform 0.15s ease-out;
+}
+
+/* Slow movement for analysis */
+.piece.sliding.slow {
+  transition: transform 0.35s ease-out;
+}
+
+/* === CAPTURE ANIMATIONS === */
+
+/* Flash effect when a piece is captured */
+@keyframes captureFlash {
+  0% {
+    background-color: var(--highlight-legal);
+    transform: scale(1);
+  }
+  50% {
+    background-color: rgba(255, 100, 100, 0.6);
+    transform: scale(1.05);
+  }
+  100% {
+    background-color: transparent;
+    transform: scale(1);
+  }
+}
+
+.square.capture-flash {
+  animation: captureFlash 0.4s ease-out;
+}
+
+/* Piece being captured fades out */
+@keyframes capturedPiece {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.7) rotate(15deg);
+  }
+}
+
+.piece.being-captured {
+  animation: capturedPiece 0.25s ease-out forwards;
+}
+
+/* === CHECK ANIMATIONS === */
+
+@keyframes checkPulse {
+  0%, 100% {
+    border-color: rgba(255, 69, 0, 0.9);
+    box-shadow: inset 0 0 15px rgba(255, 69, 0, 0.3);
+  }
+  50% {
+    border-color: rgba(255, 0, 0, 1);
+    box-shadow: inset 0 0 25px rgba(255, 0, 0, 0.5);
+  }
+}
+
+/* Additional check styling in style.css */
+
+/* === CHECKMATE ANIMATION === */
+
+@keyframes checkmatePulse {
+  0%, 100% {
+    border-color: rgba(139, 0, 0, 1);
+    box-shadow: inset 0 0 20px rgba(139, 0, 0, 0.4);
+    background-color: rgba(139, 0, 0, 0.15);
+  }
+  50% {
+    border-color: rgba(200, 0, 0, 1);
+    box-shadow: inset 0 0 30px rgba(200, 0, 0, 0.6);
+    background-color: rgba(200, 0, 0, 0.25);
+  }
+}
+
+.square.checkmate {
+  position: relative;
+  box-sizing: border-box;
+  border: 4px solid rgba(139, 0, 0, 1);
+  animation: checkmatePulse 0.8s ease-in-out infinite;
+}
+
+.square.checkmate .piece {
+  position: relative;
+  z-index: 2;
+  filter: drop-shadow(0 0 8px rgba(139, 0, 0, 0.9));
+}
+
+/* === ILLEGAL MOVE FEEDBACK === */
+
+/* Shake animation for illegal move attempts */
+@keyframes illegalShake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  10%, 30%, 50%, 70%, 90% {
+    transform: translateX(-5px);
+  }
+  20%, 40%, 60%, 80% {
+    transform: translateX(5px);
+  }
+}
+
+.piece.illegal-move {
+  animation: illegalShake 0.5s ease-in-out;
+}
+
+.square.illegal-target {
+  animation: illegalShake 0.3s ease-in-out;
+  background-color: rgba(255, 100, 100, 0.3) !important;
+}
+
+/* === SELECTION ANIMATIONS === */
+
+/* Smooth transition when selecting/deselecting */
+.square.selected {
+  transition: background-color 0.2s ease-out, box-shadow 0.2s ease-out;
+}
+
+.square.legal-move {
+  transition: all 0.15s ease-out;
+}
+
+/* Pulse effect for legal move hints */
+@keyframes legalMovePulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.6;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.9;
+  }
+}
+
+/* Legal move animations handled in style.css */
+/* Pulsing effect for legal moves */
+@keyframes legalMovePulse {
+  0%, 100% {
+    opacity: 0.7;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.1);
+  }
+}
+
+.square.legal-move::after {
+  animation: legalMovePulse 1.5s ease-in-out infinite;
+}
+
+/* === LAST MOVE HIGHLIGHT === */
+
+.square.last-move {
+  transition: background-color 0.3s ease-out;
+}
+
+/* Fade in effect for last move */
+@keyframes lastMoveFade {
+  0% {
+    background-color: rgba(255, 255, 100, 0.6);
+  }
+  100% {
+    background-color: var(--highlight-last);
+  }
+}
+
+.square.last-move.fresh {
+  animation: lastMoveFade 0.5s ease-out;
+}
+
+/* === GAME STATUS ANIMATIONS === */
+
+/* Checkmate announcement */
+@keyframes checkmateAnnounce {
+  0% {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.status.checkmate {
+  animation: checkmateAnnounce 0.5s ease-out;
+  font-weight: bold;
+  color: #d00;
+}
+
+/* === PROMOTION ANIMATION === */
+
+@keyframes promotionGlow {
+  0%, 100% {
+    box-shadow: 0 0 15px 5px rgba(255, 215, 0, 0.6);
+  }
+  50% {
+    box-shadow: 0 0 25px 10px rgba(255, 215, 0, 0.9);
+  }
+}
+
+.square.promotion {
+  animation: promotionGlow 1s ease-in-out infinite;
+}
+
+/* === NEW GAME TRANSITION === */
+
+@keyframes boardReset {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.3;
+    transform: scale(0.98);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.board.resetting {
+  animation: boardReset 0.4s ease-in-out;
+}
+
+/* === BUTTON PRESS FEEDBACK === */
+
+.controls button {
+  transition: all 0.15s ease-out;
+}
+
+.controls button:active {
+  transform: scale(0.95);
+}
+
+.controls button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* === MATERIAL COUNT ANIMATIONS === */
+
+@keyframes materialChange {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.2);
+    color: #d00;
+  }
+}
+
+.material-count.changed {
+  animation: materialChange 0.4s ease-out;
+}
+
+/* === ACCESSIBILITY: REDUCED MOTION === */
+
+/* Respect user's preference for reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .piece.sliding {
+    transition: none;
+  }
+
+  .square.in-check {
+    animation: none;
+    box-shadow: 0 0 10px 3px rgba(255, 50, 50, 0.6);
+  }
+}
+
+/* === PERFORMANCE OPTIMIZATION === */
+
+/* Use GPU acceleration for animations */
+.piece,
+.square.selected,
+.square.legal-move,
+.square.last-move {
+  will-change: transform;
+  transform: translateZ(0);
+}
