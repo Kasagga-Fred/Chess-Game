@@ -778,6 +778,122 @@ var Chess = function () {
     setupStartingPosition();
   };
 
+  // FEN (Forsyth-Edwards Notation) export
+  api.fen = function () {
+    var fen = "";
+
+    // 1. Piece placement
+    for (var row = 0; row < 8; row++) {
+      var emptyCount = 0;
+      for (var col = 0; col < 8; col++) {
+        var piece = board[row][col];
+        if (piece === null) {
+          emptyCount++;
+        } else {
+          if (emptyCount > 0) {
+            fen += emptyCount;
+            emptyCount = 0;
+          }
+          var symbol = piece.type;
+          if (piece.color === WHITE) symbol = symbol.toUpperCase();
+          fen += symbol;
+        }
+      }
+      if (emptyCount > 0) fen += emptyCount;
+      if (row < 7) fen += "/";
+    }
+
+    // 2. Active color
+    fen += " " + turn;
+
+    // 3. Castling availability
+    var castling = "";
+    if (castlingRights.w.king) castling += "K";
+    if (castlingRights.w.queen) castling += "Q";
+    if (castlingRights.b.king) castling += "k";
+    if (castlingRights.b.queen) castling += "q";
+    fen += " " + (castling || "-");
+
+    // 4. En passant target square
+    if (epTarget) {
+      fen += " " + rowColToSquare(epTarget.row, epTarget.col);
+    } else {
+      fen += " -";
+    }
+
+    // 5. Halfmove clock (for 50-move rule) - simplified
+    fen += " 0";
+
+    // 6. Fullmove number
+    fen += " " + Math.floor(moveHistory.length / 2 + 1);
+
+    return fen;
+  };
+
+  // Load from FEN
+  api.load = function (fenString) {
+    if (!fenString) return false;
+
+    try {
+      var parts = fenString.split(" ");
+      if (parts.length < 1) return false;
+
+      // Clear board
+      for (var r = 0; r < 8; r++) {
+        for (var c = 0; c < 8; c++) {
+          board[r][c] = null;
+        }
+      }
+
+      // Parse piece placement
+      var ranks = parts[0].split("/");
+      if (ranks.length !== 8) return false;
+
+      for (var row = 0; row < 8; row++) {
+        var col = 0;
+        var rank = ranks[row];
+        for (var i = 0; i < rank.length; i++) {
+          var char = rank[i];
+          if (char >= '1' && char <= '8') {
+            col += parseInt(char);
+          } else {
+            var color = (char === char.toUpperCase()) ? WHITE : BLACK;
+            var type = char.toLowerCase();
+            board[row][col] = { type: type, color: color };
+            col++;
+          }
+        }
+      }
+
+      // Parse active color
+      if (parts.length > 1) {
+        turn = (parts[1] === 'w') ? WHITE : BLACK;
+      }
+
+      // Record position for threefold repetition
+      positionLog.push(positionKey());
+
+      return true;
+    } catch (e) {
+      return false;
+    }
+  };
+
+  // PGN (Portable Game Notation) export - simplified
+  api.pgn = function () {
+    if (moveHistory.length === 0) return "";
+
+    var pgn = "";
+    var moves = api.history(); // Get SAN notation
+    for (var i = 0; i < moves.length; i++) {
+      if (i % 2 === 0) {
+        pgn += (Math.floor(i / 2) + 1) + ". ";
+      }
+      pgn += moves[i] + " ";
+    }
+    return pgn.trim();
+  };
+
   return api;
 };
 

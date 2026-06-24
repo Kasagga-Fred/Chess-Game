@@ -26,7 +26,7 @@
   <title>Chess Game</title>
 
   <!-- Our stylesheet. Must come before the page renders, so it's in <head>. -->
-  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/style-polished.css" />
   <link rel="stylesheet" href="css/animations.css" />
 </head>
 <body>
@@ -75,24 +75,206 @@
         <div id="move-number" class="move-number">Move 1 - White to play</div>
         <div id="material-count" class="material-count">Equal material</div>
 
+        <!-- Auto-save indicator -->
+        <div id="save-indicator" class="save-indicator">
+          <svg class="save-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+            <polyline points="17 21 17 13 7 13 7 21"/>
+            <polyline points="7 3 7 8 15 8"/>
+          </svg>
+          <span class="save-text">Saved</span>
+        </div>
+
         <div id="board" class="board"></div>
 
-        <div class="controls">
-          <button id="new-game-btn">New Game</button>
-          <button id="undo-btn">Undo Move</button>
-          <button id="flip-btn">Flip Board</button>
+        <!-- Controls for mobile (hidden on desktop) - Single Row -->
+        <div class="controls controls-mobile">
+          <div class="controls-row">
+            <button id="new-game-btn-mobile" class="control-btn control-btn-large" onclick="document.getElementById('new-game-btn').click()">
+              <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
+              </svg>
+              <span class="btn-label">New Game</span>
+            </button>
+            <button id="undo-btn-mobile" class="control-btn control-btn-large" onclick="document.getElementById('undo-btn').click()">
+              <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 7v6h6"/>
+                <path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/>
+              </svg>
+              <span class="btn-label">Undo</span>
+            </button>
+            <button id="flip-btn-mobile" class="control-btn control-btn-large" onclick="document.getElementById('flip-btn').click()">
+              <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 5v14M5 12l7 7 7-7"/>
+              </svg>
+              <span class="btn-label">Flip</span>
+            </button>
+            <button id="menu-btn-mobile" class="control-btn control-btn-large" onclick="toggleMobileMenu()">
+              <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="3" y1="12" x2="21" y2="12"/>
+                <line x1="3" y1="6" x2="21" y2="6"/>
+                <line x1="3" y1="18" x2="21" y2="18"/>
+              </svg>
+              <span class="btn-label">Menu</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Mobile Menu Drawer -->
+        <div id="mobile-menu-drawer" class="mobile-menu-drawer">
+          <div class="mobile-menu-content">
+            <div class="mobile-menu-header">
+              <h3>More Options</h3>
+              <button class="mobile-menu-close" onclick="toggleMobileMenu()">&times;</button>
+            </div>
+            <div class="mobile-menu-buttons">
+              <button class="mobile-menu-btn" onclick="document.getElementById('save-btn').click(); toggleMobileMenu();">
+                <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                  <polyline points="17 21 17 13 7 13 7 21"/>
+                  <polyline points="7 3 7 8 15 8"/>
+                </svg>
+                <span>Save Game</span>
+              </button>
+              <button class="mobile-menu-btn" onclick="document.getElementById('load-btn').click(); toggleMobileMenu();">
+                <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                  <polyline points="7 10 12 15 17 10"/>
+                  <line x1="12" y1="15" x2="12" y2="3"/>
+                </svg>
+                <span>Load Game</span>
+              </button>
+              <button class="mobile-menu-btn" onclick="document.getElementById('history-btn').click(); toggleMobileMenu();">
+                <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"/>
+                  <polyline points="12 6 12 12 16 14"/>
+                </svg>
+                <span>Game History</span>
+              </button>
+              <button class="mobile-menu-btn" onclick="document.getElementById('stats-btn').click(); toggleMobileMenu();">
+                <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="18" y1="20" x2="18" y2="10"/>
+                  <line x1="12" y1="20" x2="12" y2="4"/>
+                  <line x1="6" y1="20" x2="6" y2="14"/>
+                </svg>
+                <span>Statistics</span>
+              </button>
+            </div>
+          </div>
         </div>
       </main>
 
       <!-- ============================================
-           RIGHT PANEL: move history list
+           RIGHT PANEL: move history + controls
            ============================================ -->
       <aside class="panel panel-right">
-        <div class="moves-label">Move History</div>
-        <ol id="move-list" class="move-list"></ol>
+        <div class="moves-section">
+          <div class="moves-label">Move History</div>
+          <ol id="move-list" class="move-list"></ol>
+        </div>
+
+        <div class="controls">
+          <!-- Row 1: Game Actions -->
+          <div class="controls-row">
+            <button id="new-game-btn" class="control-btn">
+              <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
+              </svg>
+              <span class="btn-label">NEW</span>
+            </button>
+            <button id="undo-btn" class="control-btn">
+              <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 7v6h6"/>
+                <path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/>
+              </svg>
+              <span class="btn-label">UNDO</span>
+            </button>
+            <button id="flip-btn" class="control-btn">
+              <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 5v14M5 12l7 7 7-7"/>
+              </svg>
+              <span class="btn-label">FLIP</span>
+            </button>
+          </div>
+
+          <!-- Row 2: Storage -->
+          <div class="controls-row">
+            <button id="save-btn" class="control-btn">
+              <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                <polyline points="17 21 17 13 7 13 7 21"/>
+                <polyline points="7 3 7 8 15 8"/>
+              </svg>
+              <span class="btn-label">SAVE</span>
+            </button>
+            <button id="load-btn" class="control-btn">
+              <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="7 10 12 15 17 10"/>
+                <line x1="12" y1="15" x2="12" y2="3"/>
+              </svg>
+              <span class="btn-label">LOAD</span>
+            </button>
+          </div>
+
+          <!-- Row 3: Stats -->
+          <div class="controls-row">
+            <button id="history-btn" class="control-btn">
+              <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/>
+                <polyline points="12 6 12 12 16 14"/>
+              </svg>
+              <span class="btn-label">HISTORY</span>
+            </button>
+            <button id="stats-btn" class="control-btn">
+              <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="20" x2="18" y2="10"/>
+                <line x1="12" y1="20" x2="12" y2="4"/>
+                <line x1="6" y1="20" x2="6" y2="14"/>
+              </svg>
+              <span class="btn-label">STATS</span>
+            </button>
+          </div>
+        </div>
       </aside>
 
     </div>
+
+    <!-- Game History Modal -->
+    <div id="history-modal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <svg class="modal-header-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <polyline points="12 6 12 12 16 14"/>
+          </svg>
+          <h2>Game History</h2>
+          <button class="modal-close" id="close-history">&times;</button>
+        </div>
+        <div class="modal-body" id="history-content">
+          <p class="loading">Loading history...</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Statistics Modal -->
+    <div id="stats-modal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <svg class="modal-header-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="20" x2="18" y2="10"/>
+            <line x1="12" y1="20" x2="12" y2="4"/>
+            <line x1="6" y1="20" x2="6" y2="14"/>
+          </svg>
+          <h2>Statistics</h2>
+          <button class="modal-close" id="close-stats">&times;</button>
+        </div>
+        <div class="modal-body" id="stats-content">
+          <p class="loading">Loading statistics...</p>
+        </div>
+      </div>
+    </div>
+
   </div>
 
   <!--
@@ -154,6 +336,8 @@
   <script src="js/pieces.js"></script>
   <script src="js/clock.js"></script>
   <script src="js/ui.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/storage-ui.js"></script>
   <script src="js/game.js"></script>
   <script src="js/keyboard.js"></script>
 
@@ -161,6 +345,25 @@
   <script>
     window.addEventListener('DOMContentLoaded', () => {
       initKeyboardShortcuts();
+    });
+
+    // Toggle mobile menu drawer
+    function toggleMobileMenu() {
+      const drawer = document.getElementById('mobile-menu-drawer');
+      if (drawer) {
+        drawer.classList.toggle('show');
+      }
+    }
+
+    // Close mobile menu when clicking outside
+    document.addEventListener('click', (e) => {
+      const drawer = document.getElementById('mobile-menu-drawer');
+      const menuBtn = document.getElementById('menu-btn-mobile');
+      if (drawer && drawer.classList.contains('show') &&
+          !drawer.contains(e.target) &&
+          !menuBtn.contains(e.target)) {
+        drawer.classList.remove('show');
+      }
     });
   </script>
 

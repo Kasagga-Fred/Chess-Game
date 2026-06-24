@@ -60,6 +60,9 @@ let legalDestinations = [];
 // panel (1, 2, 3, ...). Increments after Black's move.
 let currentMoveNumber = 1;
 
+// Tracks the currently loaded save slot ID (null if new game or auto-loaded)
+let currentSaveId = null;
+
 /**
  * Runs once when the page finishes loading. Sets up the empty
  * board, draws the starting position, wires up button clicks,
@@ -68,11 +71,19 @@ let currentMoveNumber = 1;
 function initGame() {
   buildBoardSquares();      // board.js: creates the 64 <div> squares
   attachSquareClickHandlers();
-  renderBoard();             // draw every piece in its starting position
-  refreshStatus();           // show "White to move"
 
-  resetClocks();
-  startClock("w", handleTimeOut);
+  // Try to load saved game, or start fresh
+  const loadedSuccessfully = tryLoadSavedGame();
+  if (!loadedSuccessfully) {
+    renderBoard();             // draw every piece in its starting position
+    refreshStatus();           // show "White to move"
+
+    resetClocks();
+    startClock("w", handleTimeOut);
+
+    // Save initial game state
+    autoSaveGame();
+  }
 
   document.getElementById("new-game-btn").addEventListener("click", startNewGame);
   document.getElementById("undo-btn").addEventListener("click", undoLastMove);
@@ -248,8 +259,12 @@ function handleSuccessfulMove(moveResult) {
 
   refreshStatus();
 
+  // Auto-save game after every move
+  autoSaveGame();
+
   if (chessGame.game_over()) {
     stopClock();
+    handleGameOver();
     return;
   }
 
@@ -371,8 +386,18 @@ function handleTimeOut(colorThatRanOut) {
  * Wired to the "New Game" button.
  */
 function startNewGame() {
+  // Save current game to history if it has moves
+  if (chessGame.history().length > 0) {
+    const result = getGameResult();
+    saveToHistory(chessGame, result.type, result.winner);
+  }
+
+  // Clear saved game and start fresh
+  clearCurrentGame();
+
   chessGame = new Chess();
   currentMoveNumber = 1;
+  currentSaveId = null; // Clear loaded save tracking
   clearSelection();
 
   clearMoveHistory();      // ui.js
@@ -383,6 +408,9 @@ function startNewGame() {
 
   resetClocks();           // clock.js
   startClock("w", handleTimeOut);
+
+  // Save initial position
+  autoSaveGame();
 }
 
 /**
@@ -414,6 +442,315 @@ function handleFlipBoard() {
   attachSquareClickHandlers();
   renderBoard();
   reapplyLastMoveHighlight();
+}
+
+// ----------------------------------------------------------
+// STORAGE INTEGRATION FUNCTIONS
+// ----------------------------------------------------------
+
+/**
+ * Auto-save the current game state after every move
+ */
+function autoSaveGame() {
+  if (typeof saveCurrentGame === 'function') {
+    const capturedPieces = {
+      white: getCapturedByColor('w'),
+      black: getCapturedByColor('b')
+    };
+    saveCurrentGame(chessGame, chessGame.history(), capturedPieces, getGameStatus());
+
+    // Show save indicator
+    if (typeof showSaveIndicator === 'function') {
+      showSaveIndicator();
+    }
+  }
+}
+
+/**
+ * Manual save function - exposed globally for save button
+ * This is a wrapper that has access to game.js scope
+ */
+window.saveGameManually = function() {
+  try {
+    if (typeof saveCurrentGame !== 'function') {
+      console.error('saveCurrentGame function not found');
+      return false;
+    }
+
+    if (typeof chessGame === 'undefined' || !chessGame) {
+      console.error('chessGame not initialized');
+      return false;
+    }
+
+    const capturedPieces = {
+      white: getCapturedByColor('w'),
+      black: getCapturedByColor('b')
+    };
+
+    const saved = saveCurrentGame(
+      chessGame,
+      chessGame.history(),
+      capturedPieces,
+      getGameStatus()
+    );
+
+    console.log('Manual save completed:', saved);
+    return saved;
+  } catch (error) {
+    console.error('Error in saveGameManually:', error);
+    return false;
+  }
+};
+
+/**
+ * Get the current save ID (for UI to check if updating existing save)
+ */
+window.getCurrentSaveId = function() {
+  return currentSaveId;
+};
+
+/**
+ * Save game to a named slot
+ * If currentSaveId is set, updates that save; otherwise creates new
+ */
+window.saveGameToNamedSlot = function(saveName) {
+  try {
+    if (typeof saveGameToSlot !== 'function') {
+      console.error('saveGameToSlot function not found');
+      return false;
+    }
+
+    if (typeof chessGame === 'undefined' || !chessGame) {
+      console.error('chessGame not initialized');
+      return false;
+    }
+
+    // Pass currentSaveId to update existing save if one was loaded
+    const result = saveGameToSlot(chessGame, saveName, currentSaveId);
+
+    // Update currentSaveId with the save that was just created/updated
+    if (result && result.id) {
+      currentSaveId = result.id;
+    }
+
+    console.log('Saved to slot:', result, 'currentSaveId:', currentSaveId);
+    return result;
+  } catch (error) {
+    console.error('Error in saveGameToNamedSlot:', error);
+    return false;
+  }
+};
+
+/**
+ * Load game from a named slot by ID
+ */
+window.loadGameFromSlot = function(saveId) {
+  try {
+    if (typeof loadSavedGameById !== 'function') {
+      console.error('loadSavedGameById function not found');
+      return false;
+    }
+
+    const saveData = loadSavedGameById(saveId);
+    if (!saveData || !saveData.fen) {
+      console.error('Save data not found or invalid');
+      return false;
+    }
+
+    console.log('Loading game from FEN:', saveData.fen);
+
+    // Load the FEN position
+    const loaded = chessGame.load(saveData.fen);
+    if (!loaded) {
+      console.error('Failed to load FEN');
+      return false;
+    }
+
+    // Refresh the board and UI
+    currentMoveNumber = Math.floor(chessGame.history().length / 2) + 1;
+    renderBoard();
+    refreshStatus();
+
+    // Clear and rebuild move history UI
+    clearMoveHistory();
+    const history = chessGame.history({ verbose: true });
+    history.forEach((move, index) => {
+      const moveNum = Math.floor(index / 2) + 1;
+      addMoveToHistory(moveNum, move.color, move.san);
+    });
+
+    // Clear captured pieces (will be rebuilt as moves are made)
+    clearCapturedPieces();
+
+    // Reset clocks
+    if (!chessGame.game_over()) {
+      resetClocks();
+      startClock(chessGame.turn(), handleTimeOut);
+    }
+
+    // Track which save was loaded
+    currentSaveId = saveId;
+
+    // Auto-save the loaded game to CURRENT_GAME so changes are tracked
+    autoSaveGame();
+
+    console.log('Game loaded successfully from slot:', saveId);
+    return true;
+  } catch (error) {
+    console.error('Error in loadGameFromSlot:', error);
+    return false;
+  }
+};
+
+/**
+ * Try to load a saved game on startup
+ */
+function tryLoadSavedGame() {
+  try {
+    if (typeof loadCurrentGame !== 'function' || !hasSavedGame()) {
+      return false;
+    }
+
+    const saved = loadCurrentGame();
+    if (!saved || !saved.fen) {
+      console.log('No valid saved game found');
+      return false;
+    }
+
+    console.log('Loading saved game from FEN');
+
+    // Load the FEN position
+    const loaded = chessGame.load(saved.fen);
+    if (!loaded) {
+      console.error('Failed to load saved game FEN');
+      return false;
+    }
+
+    // Restore captured pieces
+    if (saved.capturedPieces) {
+      if (saved.capturedPieces.white) {
+        saved.capturedPieces.white.forEach(piece => {
+          addCapturedPiece(piece.type, piece.color);
+        });
+      }
+      if (saved.capturedPieces.black) {
+        saved.capturedPieces.black.forEach(piece => {
+          addCapturedPiece(piece.type, piece.color);
+        });
+      }
+    }
+
+    // Restore move history UI
+    clearMoveHistory();
+    const history = chessGame.history({ verbose: true });
+    history.forEach((move, index) => {
+      const moveNum = Math.floor(index / 2) + 1;
+      addMoveToHistory(moveNum, move.color, move.san);
+    });
+
+    // Update move counter
+    currentMoveNumber = Math.floor(chessGame.history().length / 2) + 1;
+
+    // Render everything
+    renderBoard();
+    refreshStatus();
+
+    // Start appropriate clock
+    if (!chessGame.game_over()) {
+      resetClocks();
+      startClock(chessGame.turn(), handleTimeOut);
+    }
+
+    return true;
+  } catch (error) {
+    console.error('Error loading saved game:', error);
+    return false;
+  }
+}
+
+/**
+ * Get current game status
+ */
+function getGameStatus() {
+  if (chessGame.in_checkmate()) return 'checkmate';
+  if (chessGame.in_stalemate()) return 'stalemate';
+  if (chessGame.in_draw()) return 'draw';
+  if (chessGame.in_check()) return 'check';
+  return 'ongoing';
+}
+
+/**
+ * Get game result for history/stats
+ */
+function getGameResult() {
+  if (chessGame.in_checkmate()) {
+    const winner = chessGame.turn() === 'w' ? 'black' : 'white';
+    return { type: 'checkmate', winner: winner };
+  }
+  if (chessGame.in_stalemate()) {
+    return { type: 'stalemate', winner: 'draw' };
+  }
+  if (chessGame.in_draw()) {
+    return { type: 'draw', winner: 'draw' };
+  }
+  return { type: 'ongoing', winner: null };
+}
+
+/**
+ * Handle game over - save to history and update stats
+ */
+function handleGameOver() {
+  if (typeof saveToHistory === 'function' && typeof updateStats === 'function') {
+    const result = getGameResult();
+    saveToHistory(chessGame, result.type, result.winner);
+    updateStats(result.type, result.winner);
+  }
+  // Clear current game save since it's complete
+  if (typeof clearCurrentGame === 'function') {
+    clearCurrentGame();
+  }
+}
+
+/**
+ * Get captured pieces by color for saving
+ */
+function getCapturedByColor(color) {
+  const container = color === 'w' ?
+    document.getElementById('captured-by-white') :
+    document.getElementById('captured-by-black');
+
+  if (!container) return [];
+
+  const pieces = [];
+  const symbols = container.textContent;
+
+  // Simple extraction - each Unicode piece is one character
+  for (let char of symbols) {
+    if (char.trim()) {
+      pieces.push({
+        symbol: char,
+        color: color === 'w' ? 'b' : 'w', // Captured pieces are opposite color
+        type: getPieceTypeFromSymbol(char)
+      });
+    }
+  }
+
+  return pieces;
+}
+
+/**
+ * Get piece type from Unicode symbol
+ */
+function getPieceTypeFromSymbol(symbol) {
+  const map = {
+    '♙': 'p', '♟': 'p',
+    '♘': 'n', '♞': 'n',
+    '♗': 'b', '♝': 'b',
+    '♖': 'r', '♜': 'r',
+    '♕': 'q', '♛': 'q',
+    '♔': 'k', '♚': 'k'
+  };
+  return map[symbol] || 'p';
 }
 
 // ----------------------------------------------------------
