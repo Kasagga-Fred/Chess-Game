@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Clear Chess Storage</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+      color: #f5f5f5;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+      padding: 20px;
+    }
+    .container {
+      background: rgba(30, 30, 30, 0.9);
+      border: 2px solid #d4af37;
+      border-radius: 12px;
+      padding: 40px;
+      max-width: 500px;
+      text-align: center;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    }
+    h1 {
+      color: #d4af37;
+      margin-bottom: 20px;
+    }
+    button {
+      background: linear-gradient(135deg, rgba(212, 175, 55, 0.2) 0%, rgba(212, 175, 55, 0.1) 100%);
+      border: 2px solid #d4af37;
+      color: #f5f5f5;
+      padding: 12px 24px;
+      margin: 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+    button:hover {
+      background: linear-gradient(135deg, rgba(212, 175, 55, 0.3) 0%, rgba(212, 175, 55, 0.2) 100%);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(212, 175, 55, 0.3);
+    }
+    .danger {
+      border-color: #dc3545;
+      background: linear-gradient(135deg, rgba(220, 53, 69, 0.2) 0%, rgba(220, 53, 69, 0.1) 100%);
+    }
+    .danger:hover {
+      background: linear-gradient(135deg, rgba(220, 53, 69, 0.3) 0%, rgba(220, 53, 69, 0.2) 100%);
+      box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+    }
+    #status {
+      margin-top: 20px;
+      padding: 12px;
+      border-radius: 6px;
+      font-weight: 500;
+    }
+    .success {
+      background: rgba(40, 167, 69, 0.2);
+      border: 1px solid #28a745;
+      color: #28a745;
+    }
+    .info {
+      background: rgba(23, 162, 184, 0.2);
+      border: 1px solid #17a2b8;
+      color: #17a2b8;
+    }
+    .storage-info {
+      margin: 20px 0;
+      padding: 15px;
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 8px;
+      text-align: left;
+    }
+    .storage-info pre {
+      background: rgba(0, 0, 0, 0.5);
+      padding: 10px;
+      border-radius: 4px;
+      overflow-x: auto;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🧹 Chess Storage Manager</h1>
+    <p>Use this page to clear corrupted save data if the game won't load.</p>
+
+    <div class="storage-info" id="storage-info">
+      <strong>Current Storage:</strong>
+      <div id="storage-content"></div>
+    </div>
+
+    <button onclick="showStorage()">🔍 View Storage</button>
+    <button class="danger" onclick="clearStorage()">🗑️ Clear All Storage</button>
+    <button onclick="goToGame()">↩️ Back to Game</button>
+
+    <div id="status"></div>
+  </div>
+
+  <script>
+    function showStorage() {
+      const content = document.getElementById('storage-content');
+      const keys = ['chess-game-current', 'chess-game-saves', 'chess-game-history', 'chess-game-settings', 'chess-game-stats'];
+
+      let html = '';
+      keys.forEach(key => {
+        const data = localStorage.getItem(key);
+        if (data) {
+          html += `<p><strong>${key}:</strong></p>`;
+          html += `<pre>${data.substring(0, 200)}${data.length > 200 ? '...' : ''}</pre>`;
+        } else {
+          html += `<p><strong>${key}:</strong> <em>empty</em></p>`;
+        }
+      });
+
+      content.innerHTML = html || '<p><em>No chess data found</em></p>';
+    }
+
+    function clearStorage() {
+      if (!confirm('Are you sure? This will delete ALL saved games, history, and settings.')) {
+        return;
+      }
+
+      const keys = ['chess-game-current', 'chess-game-saves', 'chess-game-history', 'chess-game-settings', 'chess-game-stats'];
+
+      keys.forEach(key => localStorage.removeItem(key));
+
+      const status = document.getElementById('status');
+      status.className = 'success';
+      status.textContent = '✓ All storage cleared successfully! You can now go back to the game.';
+
+      showStorage();
+    }
+
+    function goToGame() {
+      window.location.href = 'index.html';
+    }
+
+    // Show storage on load
+    showStorage();
+  </script>
+</body>
+</html>
